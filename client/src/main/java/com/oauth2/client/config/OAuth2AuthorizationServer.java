@@ -3,16 +3,25 @@ package com.oauth2.client.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.common.DefaultOAuth2AccessToken;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.token.TokenEnhancer;
+import org.springframework.security.oauth2.provider.token.TokenEnhancerChain;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
+import org.springframework.security.oauth2.provider.token.store.KeyStoreKeyFactory;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 @EnableAuthorizationServer
@@ -29,9 +38,13 @@ public class OAuth2AuthorizationServer extends AuthorizationServerConfigurerAdap
 
     @Override
     public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
+        //表单申请令牌
         security.allowFormAuthenticationForClients()
-                .checkTokenAccess("isAuthenticated()") //url:/oauth/check_token allow check token 获取check token
-                .tokenKeyAccess("isAuthenticated()");// 获取密钥需要身份认证，使用单点登录时必须配置  判断token 账户登录
+                //url:/oauth/check_token allow check token 获取check token
+//                .checkTokenAccess("isAuthenticated()")
+                .checkTokenAccess("permitAll()")
+                // 获取密钥需要身份认证，使用单点登录时必须配置  判断token 账户登录  token key
+                .tokenKeyAccess("permitAll()");
     }
 
     @Override
@@ -115,12 +128,20 @@ public class OAuth2AuthorizationServer extends AuthorizationServerConfigurerAdap
 
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+        TokenEnhancerChain tokenEnhancerChain = new TokenEnhancerChain();
+        tokenEnhancerChain.setTokenEnhancers(
+                Arrays.asList(tokenEnhancer(), accessTokenConverter()));
+
         endpoints
                 //开启密码管理需要注入这个manager
                 .authenticationManager(authenticationManager)
+                //加载密码管理的user进去
                 .userDetailsService(userDetailsService)
-                .tokenStore(jwtTokenStore())//
-                .accessTokenConverter(accessTokenConverter()) //token转换
+                .tokenStore(jwtTokenStore())
+                //token增强
+                .tokenEnhancer(tokenEnhancerChain)
+                //token转换
+                .accessTokenConverter(accessTokenConverter())
                 .allowedTokenEndpointRequestMethods(HttpMethod.GET, HttpMethod.POST);
     }
 
@@ -139,8 +160,24 @@ public class OAuth2AuthorizationServer extends AuthorizationServerConfigurerAdap
     @Bean
     public JwtAccessTokenConverter accessTokenConverter() {
         JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
-        converter.setSigningKey("oauth2-key"); //对称加密
+        //对称加密
+        converter.setSigningKey("oauth2-key");
+        //非对称加密，jdk中有个keytool工具生成的
+//        KeyStoreKeyFactory keyStoreKeyFactory = new KeyStoreKeyFactory(new ClassPathResource("oauth2.jks"), "123456".toCharArray());
+//        converter.setKeyPair(keyStoreKeyFactory.getKeyPair("oauth2"));
         return converter;
+    }
+
+
+    @Bean
+    public TokenEnhancer tokenEnhancer() {
+        return (accessToken, authentication) -> {
+            Map<String, Object> additionalInfo = new HashMap<>(1);
+            //添加id  和头像img路径
+            additionalInfo.put("id", 74);
+            ((DefaultOAuth2AccessToken) accessToken).setAdditionalInformation(additionalInfo);
+            return accessToken;
+        };
     }
 
 

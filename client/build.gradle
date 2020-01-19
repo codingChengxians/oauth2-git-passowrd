@@ -17,8 +17,10 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 //	implementation 'org.springframework.boot:spring-boot-starter-security'
 	compile group: 'org.springframework.security.oauth.boot', name: 'spring-security-oauth2-autoconfigure', version: '2.2.2.RELEASE'
-	compile group: 'org.projectlombok', name: 'lombok', version: '1.18.10'
+	compile "org.projectlombok:lombok:1.18.10"
 	compile 'cn.hutool:hutool-all:5.1.0'
+	compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-redis', version: '2.1.7.RELEASE'
+
 
 	testImplementation('org.springframework.boot:spring-boot-starter-test') {
 		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'

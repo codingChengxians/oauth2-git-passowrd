@@ -2,6 +2,8 @@ package com.oauth2.client.config;
 
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 @RestController
 public class HelloController {
@@ -51,5 +54,16 @@ public class HelloController {
 
         }
         return null;
+    }
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+
+    @RequestMapping("/oauth/sms/send")
+    public void smsSend(@RequestParam("mobile")String mobile){
+        redisTemplate.opsForValue().set(mobile,String.valueOf(new Random().nextInt(9999)));
+    }
+    @RequestMapping("/sms/login")
+    public void getSmsCode(@RequestParam("mobile")String mobile){
+        System.out.println(mobile + "手机登陆，发放token 手动定义~");
     }
 }

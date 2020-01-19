@@ -30,6 +30,7 @@ public class SmsAuthenticationFilter extends AbstractAuthenticationProcessingFil
     // ~ Methods
     // ========================================================================================================
 
+    @Override
     public Authentication attemptAuthentication(HttpServletRequest request,
                                                 HttpServletResponse response) throws AuthenticationException {
         if (postOnly && !request.getMethod().equals("POST")) {
@@ -38,45 +39,21 @@ public class SmsAuthenticationFilter extends AbstractAuthenticationProcessingFil
         }
 
         String mobile = obtainmobile(request);
-        String code = obtaincode(request);
 
         if (mobile == null) {
             mobile = "";
         }
 
-        if (code == null) {
-            code = "";
-        }
 
         mobile = mobile.trim();
 
         SmsAuthenticationToken authRequest = new SmsAuthenticationToken(
-                mobile, code);
+                mobile);
 
         // Allow subclasses to set the "details" property
         setDetails(request, authRequest);
 
         return this.getAuthenticationManager().authenticate(authRequest);
-    }
-
-    /**
-     * Enables subclasses to override the composition of the code, such as by
-     * including additional values and a separator.
-     * <p>
-     * This might be used for example if a postcode/zipcode was required in addition to
-     * the code. A delimiter such as a pipe (|) should be used to separate the
-     * code and extended value(s). The <code>AuthenticationDao</code> will need to
-     * generate the expected code in a corresponding manner.
-     * </p>
-     *
-     * @param request so that request attributes can be retrieved
-     *
-     * @return the code that will be presented in the <code>Authentication</code>
-     * request token to the <code>AuthenticationManager</code>
-     */
-    @Nullable
-    protected String obtaincode(HttpServletRequest request) {
-        return request.getParameter(codeParameter);
     }
 
     /**

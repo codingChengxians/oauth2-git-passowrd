@@ -7,6 +7,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 
 public class User implements UserDetails {
+    private Long id = 74L;
     private String username;
     private String password;
     private String mobile;

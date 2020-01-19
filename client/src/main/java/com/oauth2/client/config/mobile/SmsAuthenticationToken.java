@@ -25,10 +25,9 @@ public class SmsAuthenticationToken extends AbstractAuthenticationToken {
      * will return <code>false</code>.
      *
      */
-    public SmsAuthenticationToken(Object principal, Object credentials) {
+    public SmsAuthenticationToken(Object principal) {
         super(null);
         this.principal = principal;
-        this.credentials = credentials;
         setAuthenticated(false);
     }
 
@@ -39,28 +38,30 @@ public class SmsAuthenticationToken extends AbstractAuthenticationToken {
      * authentication token.
      *
      * @param principal
-     * @param credentials
      * @param authorities
      */
-    public SmsAuthenticationToken(Object principal, Object credentials,
+    public SmsAuthenticationToken(Object principal,
                                   Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         this.principal = principal;
-        this.credentials = credentials;
-        super.setAuthenticated(true); // must use super, as we override
+        super.setAuthenticated(true);
+        // must use super, as we override
     }
 
     // ~ Methods
     // ========================================================================================================
 
+    @Override
     public Object getCredentials() {
         return this.credentials;
     }
 
+    @Override
     public Object getPrincipal() {
         return this.principal;
     }
 
+    @Override
     public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
         if (isAuthenticated) {
             throw new IllegalArgumentException(

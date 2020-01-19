@@ -1,6 +1,7 @@
 package com.oauth2.resouce;
 
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -10,6 +11,8 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
+import org.springframework.security.oauth2.provider.token.RemoteTokenServices;
+import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
@@ -37,9 +40,12 @@ public class ResouceConfig extends ResourceServerConfigurerAdapter {
 
     @Override
     public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+        // 默认defaultToken  还有remote 不基于jwt的 普通token ，要走check_token中去远程验证
         resources.resourceId("resource_password_id")
-                .tokenServices(tokenServices());
-        super.configure(resources);
+                .tokenStore(jwtTokenStore())
+                .stateless(true);
+//                .tokenServices(tokenServices());
+//        super.configure(resources);
 
     }
 
@@ -71,5 +77,17 @@ public class ResouceConfig extends ResourceServerConfigurerAdapter {
         accessTokenConverter.setSigningKey("oauth2-key");
         return accessTokenConverter;
     }
+
+//    @Bean  远程认证token
+//    public ResourceServerTokenServices tokenServices(){
+//        RemoteTokenServices remoteTokenServices = new RemoteTokenServices();
+//        remoteTokenServices.setCheckTokenEndpointUrl("http://127.0.0.1:8080/oauth/check_token");
+//        remoteTokenServices.setClientId("resource_password_id");
+//        remoteTokenServices.setClientSecret("secret");
+//        return remoteTokenServices;
+//
+//    }
+//  默认本地解析 token 和远程解析token
+//  如果是吧token 转换成了JWT 则不需要， jwt中已经把token 和认证信息全部   加密（base64（）.base64（）.xx） 给 加密了一遍
 
 }
